@@ -98,9 +98,11 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
 
   return (
     <div className="flex flex-col items-center">
-        <Button onClick={() => setActiveGroup(null)} className="mb-4">
-            Back to Groups
-        </Button>
+        <div className="w-full flex justify-end">
+            <Button onClick={() => setActiveGroup(null)} className="mb-4">
+                Back to Groups
+            </Button>
+        </div>
       <h2 className="text-2xl font-semibold mb-4">{group.name}</h2>
 
       <div className="w-full overflow-auto">
@@ -206,3 +208,4 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
     </div>
   );
 }
+

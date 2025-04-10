@@ -27,6 +27,10 @@ export default function GroupsHome() {
     { name: "Lightweight Baby", members: lightweightBabyMembers },
   ];
 
+    const GroupButton = ({ groupName }: { groupName: string }) => (
+        <Button className="w-full" onClick={() => setActiveGroup(groupName)}>{groupName}</Button>
+    );
+
   if (activeGroup) {
     const group = groups.find((g) => g.name === activeGroup);
     if (group) {
@@ -40,11 +44,16 @@ export default function GroupsHome() {
       <ul>
         {groups.map((group) => (
           <li key={group.name} className="py-2">
-            <Button className="w-full" onClick={() => setActiveGroup(group.name)}>{group.name}</Button>
+            <GroupButton groupName={group.name} />
           </li>
         ))}
       </ul>
+        <div className="flex mt-4">
+            <Button className="w-1/2 mr-2">Join Group</Button>
+            <Button className="w-1/2">Create Group</Button>
+        </div>
     </div>
   );
 
 }
+
