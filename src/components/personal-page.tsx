@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, addDays, isWithinInterval, isFuture } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, addDays, isWithinInterval, isFuture, addMonths } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -124,11 +124,11 @@ export default function PersonalPage() {
       <div className="w-full p-4">
         {/* Calendar Header */}
         <div className="flex justify-between items-center mb-2">
-          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -1))}>
+          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, -1))}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <h3 className="font-semibold">{format(currentDate, "MMMM yyyy")}</h3>
-          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, 1))}>
+          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
@@ -206,3 +206,4 @@ export default function PersonalPage() {
     </div>
   );
 }
+
