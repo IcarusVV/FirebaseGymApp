@@ -86,11 +86,11 @@ body {
 /* Calendar styles */
 .rdp {
     --rdp-cell-size: 40px;
-    --rdp-accent-color: theme(colors.primary.DEFAULT);
-    --rdp-background-color: theme(colors.background);
-    --rdp-accent-color-light: theme(colors.primary.DEFAULT/20);
-    --rdp-selected-color: theme(colors.primary.foreground);
-    --rdp-today-color: theme(colors.accent.DEFAULT);
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--background));
+    --rdp-accent-color-light: hsl(var(--primary)/20);
+    --rdp-selected-color: hsl(var(--primary-foreground));
+    --rdp-today-color: hsl(var(--accent));
     --rdp-cell-border-radius: 0.5rem;
     --rdp-spacing: 0.5rem;
 }
@@ -111,4 +111,13 @@ body {
     @apply text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground;
 }
 
+/* Add vertical lines to the day cells */
+.rdp-day {
+  border-right: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+}
 
+/* Remove the border on the last day of the week */
+.rdp-row > div:last-child .rdp-day {
+  border-right: none;
+}
