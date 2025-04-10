@@ -56,7 +56,7 @@ export default function GroupsPage() {
       <div className="grid grid-cols-8 gap-2">
         <div></div>
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="flex flex-col items-center">
+          <div key={day.toISOString()} className="flex flex-col items-center justify-center border-r border-border last:border-r-0">
             <p className="text-sm">{format(day, "EEE")}</p>
           </div>
         ))}
@@ -83,7 +83,7 @@ export default function GroupsPage() {
                   return (
                     <div
                       key={day.toISOString()}
-                      className="flex flex-col items-center"
+                      className="flex flex-col items-center border-r border-border last:border-r-0"
                       onClick={() => handleDayClick(day)}
                       style={{ cursor: "pointer" }}
                     >
