@@ -32,22 +32,26 @@ export default function Home() {
 
         {/* Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 w-full bg-secondary border-t border-border">
-          <div className="flex justify-around p-2">
-            {tabs.map((tab) => (
-              <Button
-                key={tab.name}
-                variant="ghost"
-                className={cn(
-                  "flex flex-col items-center justify-center rounded-md p-2",
-                  activeTab === tab.name
-                    ? "text-primary"
-                    : "hover:text-foreground/80"
+          <div className="flex justify-around">
+            {tabs.map((tab, index) => (
+              <div key={tab.name} className="flex-1 flex items-center justify-center">
+                {index > 0 && (
+                  <div className="h-5 border-l border-border"></div>
                 )}
-                onClick={() => setActiveTab(tab.name)}
-              >
-                <tab.icon className="h-5 w-5" />
-                <span>{tab.name}</span>
-              </Button>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "flex flex-col items-center justify-center rounded-md p-2 w-full",
+                    activeTab === tab.name
+                      ? "text-primary"
+                      : "hover:bg-accent hover:text-foreground/80"
+                  )}
+                  onClick={() => setActiveTab(tab.name)}
+                >
+                  <tab.icon className="h-5 w-5" />
+                  <span>{tab.name}</span>
+                </Button>
+              </div>
             ))}
           </div>
         </nav>
