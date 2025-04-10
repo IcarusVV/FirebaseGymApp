@@ -49,8 +49,8 @@ export default function GroupsHome() {
         ))}
       </ul>
         <div className="flex mt-4">
-            <Button className="w-1/2 mr-2">Join Group</Button>
-            <Button className="w-1/2">Create Group</Button>
+            <Button variant="outline" className="w-1/2 mr-2">Join Group</Button>
+            <Button variant="outline" className="w-1/2">Create Group</Button>
         </div>
     </div>
   );
