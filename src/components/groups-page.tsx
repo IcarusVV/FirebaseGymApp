@@ -2,7 +2,7 @@
 
 import { useState, useContext } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { addDays, startOfWeek, format } from "date-fns";
+import { addDays, startOfWeek, format, isWithinInterval } from "date-fns";
 import { useGymContext } from "@/context/gym-context";
 import {
   Dialog,
@@ -14,7 +14,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { GymContextType } from "@/context/gym-context";
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Crown } from "lucide-react";
 
 const groupMembers = [
   { name: "Ben", id: "ben" },
@@ -31,6 +41,20 @@ function getWeekDays(date: Date) {
     days.push(addDays(startDate, i));
   }
   return days;
+}
+
+function getMemberVisitsThisWeek(
+  member: { name: string; id: string },
+  confirmedVisits: Date[],
+  weekStart: Date,
+  weekEnd: Date
+): Date[] {
+  if (member.name === "Ryan") {
+    return confirmedVisits.filter((visit) =>
+      isWithinInterval(visit, { start: weekStart, end: weekEnd })
+    );
+  }
+  return [];
 }
 
 export default function GroupsPage() {
@@ -51,6 +75,23 @@ export default function GroupsPage() {
     setOpen(true);
   };
 
+  const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 0 });
+  const weekEnd = addDays(weekStart, 6);
+
+  const memberVisits = groupMembers.map((member) => ({
+    member,
+    visits: getMemberVisitsThisWeek(member, confirmedVisits, weekStart, weekEnd),
+  }));
+
+  const memberWithMostVisits = memberVisits.reduce(
+    (maxVisitsMember, currentMember) => {
+      return currentMember.visits.length > maxVisitsMember.visits.length
+        ? currentMember
+        : maxVisitsMember;
+    },
+    { member: { name: "", id: "" }, visits: [] }
+  ).member;
+
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers (Weekly)</h2>
@@ -61,7 +102,10 @@ export default function GroupsPage() {
             <TableRow>
               <TableHead className="w-[150px]">Member</TableHead>
               {weekDays.map((day) => (
-                <TableHead key={day.toISOString()} className="w-[80px] text-center">
+                <TableHead
+                  key={day.toISOString()}
+                  className="w-[calc(100%/7)] text-center"
+                >
                   {format(day, "EEE")}
                 </TableHead>
               ))}
@@ -70,7 +114,12 @@ export default function GroupsPage() {
           <TableBody>
             {groupMembers.map((member) => (
               <TableRow key={member.id}>
-                <TableCell className="font-medium">{member.name}</TableCell>
+                <TableCell className="font-medium">
+                  {member.name}{" "}
+                  {memberWithMostVisits.id === member.id && (
+                    <Crown className="inline-block h-4 w-4 text-yellow-500" />
+                  )}
+                </TableCell>
                 {weekDays.map((day) => {
                   let isVisitConfirmed = false;
                   if (member.name === "Ryan") {
