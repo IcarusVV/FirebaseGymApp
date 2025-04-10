@@ -26,13 +26,10 @@ import {
 } from "@/components/ui/table";
 import { Crown } from "lucide-react";
 
-const groupMembers = [
-  { name: "Ben", id: "ben" },
-  { name: "Ryan", id: "ryan" },
-  { name: "Shaun", id: "shaun" },
-  { name: "Mike", id: "mike" },
-  { name: "Greg", id: "greg" },
-];
+interface GroupProps {
+  name: string;
+  members: { name: string; id: string }[];
+}
 
 function getWeekDays(date: Date) {
   const startDate = startOfWeek(date, { weekStartsOn: 0 }); // Start week on Sunday
@@ -47,17 +44,24 @@ function getMemberVisitsThisWeek(
   member: { name: string; id: string },
   confirmedVisits: Date[],
   weekStart: Date,
-  weekEnd: Date
+  weekEnd: Date,
+  groupId: string
 ): Date[] {
-  if (member.name === "Ryan") {
+  if (member.id === "ryan" && groupId === "arnold") {
     return confirmedVisits.filter((visit) =>
       isWithinInterval(visit, { start: weekStart, end: weekEnd })
     );
   }
+
+    if (member.id === "ryan" && groupId === "lightweight") {
+        return confirmedVisits.filter((visit) =>
+            isWithinInterval(visit, { start: weekStart, end: weekEnd })
+        );
+    }
   return [];
 }
 
-export default function GroupsPage() {
+export default function GroupsPage({ group }: { group: GroupProps }) {
   const [selectedWeek, setSelectedWeek] = useState(new Date());
   const weekDays = getWeekDays(selectedWeek);
   const { confirmedVisits } = useGymContext();
@@ -78,9 +82,9 @@ export default function GroupsPage() {
   const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 0 });
   const weekEnd = addDays(weekStart, 6);
 
-  const memberVisits = groupMembers.map((member) => ({
+  const memberVisits = group.members.map((member) => ({
     member,
-    visits: getMemberVisitsThisWeek(member, confirmedVisits, weekStart, weekEnd),
+    visits: getMemberVisitsThisWeek(member, confirmedVisits, weekStart, weekEnd, group.name === "Arnold Worshippers" ? "arnold" : "lightweight"),
   }));
 
   const memberWithMostVisits = memberVisits.reduce(
@@ -94,7 +98,7 @@ export default function GroupsPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers</h2>
+      <h2 className="text-2xl font-semibold mb-4">{group.name}</h2>
 
       <div className="w-full overflow-auto">
         <Table>
@@ -112,7 +116,7 @@ export default function GroupsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {groupMembers.map((member) => (
+            {group.members.map((member) => (
               <TableRow key={member.id}>
                 <TableCell className="font-medium">
                   {member.name}{" "}
@@ -122,12 +126,19 @@ export default function GroupsPage() {
                 </TableCell>
                 {weekDays.map((day) => {
                   let isVisitConfirmed = false;
-                  if (member.name === "Ryan") {
-                    // For Ryan, check against the global confirmedVisits
-                    isVisitConfirmed = confirmedVisits.some(
-                      (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                    );
-                  }
+                    if (member.id === "ryan" && group.name === "Arnold Worshippers") {
+                        // For Ryan, check against the global confirmedVisits
+                        isVisitConfirmed = confirmedVisits.some(
+                            (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+                        );
+                    }
+
+                      if (member.id === "ryan" && group.name === "Lightweight Baby") {
+                          // For Ryan, check against the global confirmedVisits
+                          isVisitConfirmed = confirmedVisits.some(
+                              (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+                          );
+                      }
 
                   return (
                     <TableCell key={day.toISOString()} className="text-center">

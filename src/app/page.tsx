@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState } from "react";
-import { CalendarIcon, Users, Settings } from "lucide-react";
+import { CalendarIcon, Users, Settings, Home } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,14 +10,15 @@ import PersonalPage from "@/components/personal-page";
 import GroupsPage from "@/components/groups-page";
 import SettingsPage from "@/components/settings-page";
 import { GymContextProvider } from "@/context/gym-context";
+import GroupsHome from "@/components/groups-home";
 
 const tabs = [
   { name: "Personal", icon: CalendarIcon, component: PersonalPage },
-  { name: "Groups", icon: Users, component: GroupsPage },
+  { name: "Groups", icon: Users, component: GroupsHome },
   { name: "Settings", icon: Settings, component: SettingsPage },
 ];
 
-export default function Home() {
+export default function HomePage() {
   const [activeTab, setActiveTab] = useState("Personal");
 
   const TabComponent = tabs.find((tab) => tab.name === activeTab)?.component || PersonalPage;
@@ -61,4 +61,3 @@ export default function Home() {
     </GymContextProvider>
   );
 }
-
