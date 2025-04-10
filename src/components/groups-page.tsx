@@ -19,12 +19,12 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Crown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface GroupProps {
   name: string;
@@ -61,7 +61,7 @@ function getMemberVisitsThisWeek(
   return [];
 }
 
-export default function GroupsPage({ group }: { group: GroupProps }) {
+export default function GroupsPage({ group, setActiveGroup }: { group: GroupProps, setActiveGroup: (groupName: string | null) => void }) {
   const [selectedWeek, setSelectedWeek] = useState(new Date());
   const weekDays = getWeekDays(selectedWeek);
   const { confirmedVisits } = useGymContext();
@@ -98,6 +98,9 @@ export default function GroupsPage({ group }: { group: GroupProps }) {
 
   return (
     <div className="flex flex-col items-center">
+        <Button onClick={() => setActiveGroup(null)} className="mb-4">
+            Back to Groups
+        </Button>
       <h2 className="text-2xl font-semibold mb-4">{group.name}</h2>
 
       <div className="w-full overflow-auto">

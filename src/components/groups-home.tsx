@@ -30,7 +30,7 @@ export default function GroupsHome() {
   if (activeGroup) {
     const group = groups.find((g) => g.name === activeGroup);
     if (group) {
-      return <GroupsPage group={group} />;
+      return <GroupsPage group={group} setActiveGroup={setActiveGroup} />;
     }
   }
 
@@ -40,10 +40,11 @@ export default function GroupsHome() {
       <ul>
         {groups.map((group) => (
           <li key={group.name} className="py-2">
-            <Button onClick={() => setActiveGroup(group.name)}>{group.name}</Button>
+            <Button className="w-full" onClick={() => setActiveGroup(group.name)}>{group.name}</Button>
           </li>
         ))}
       </ul>
     </div>
   );
+
 }
