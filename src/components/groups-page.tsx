@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { GymContextType } from "@/context/gym-context";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const groupMembers = [
   { name: "Ben", id: "ben" },
@@ -54,28 +55,22 @@ export default function GroupsPage() {
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers (Weekly)</h2>
 
-      {/* Days of the week header */}
-      <div className="grid grid-cols-8 gap-2">
-        <div className="w-40 p-4"></div> {/* Empty div for spacing */}
-        {weekDays.map((day) => (
-          <div
-            key={day.toISOString()}
-            className="flex flex-col items-center justify-center border-r border-border last:border-r-0 w-20"
-          >
-            <p className="text-sm">{format(day, "EEE")}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex flex-col">
-        {groupMembers.map((member) => (
-          <div key={member.id} className="flex items-center mb-4">
-            <div className="w-40 p-4">
-              <p className="font-semibold">{member.name}</p>
-            </div>
-
-            <div className="border rounded-md p-4">
-              <div className="grid grid-cols-7 gap-2">
+      <div className="w-full overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[150px]">Member</TableHead>
+              {weekDays.map((day) => (
+                <TableHead key={day.toISOString()} className="w-[80px] text-center">
+                  {format(day, "EEE")}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groupMembers.map((member) => (
+              <TableRow key={member.id}>
+                <TableCell className="font-medium">{member.name}</TableCell>
                 {weekDays.map((day) => {
                   let isVisitConfirmed = false;
                   if (member.name === "Ryan") {
@@ -86,26 +81,26 @@ export default function GroupsPage() {
                   }
 
                   return (
-                    <div
-                      key={day.toISOString()}
-                      className="flex flex-col items-center border-r border-border last:border-r-0 w-20" // Adjusted width to match the header
-                      onClick={() => handleDayClick(day)}
-                      style={{ cursor: "pointer" }}
-                    >
+                    <TableCell key={day.toISOString()} className="text-center">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isVisitConfirmed ? "bg-green-200" : ""
-                        }`}
+                        onClick={() => handleDayClick(day)}
+                        style={{ cursor: "pointer" }}
                       >
-                        <span>{format(day, "d")}</span>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto ${
+                            isVisitConfirmed ? "bg-green-200" : ""
+                          }`}
+                        >
+                          <span>{format(day, "d")}</span>
+                        </div>
                       </div>
-                    </div>
+                    </TableCell>
                   );
                 })}
-              </div>
-            </div>
-          </div>
-        ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
