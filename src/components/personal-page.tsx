@@ -46,7 +46,7 @@ export default function PersonalPage() {
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-semibold mb-4">Personal Gym Visits</h2>
-      <div className="p-4 w-full max-w-md">
+      <div className="p-4 w-full">
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -54,10 +54,12 @@ export default function PersonalPage() {
           className="rounded-md"
           // Styling to highlight the days
           classNames={{
-            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 border-r border-b border-border",
             day_selected:
               "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
             day_today: "bg-accent text-accent-foreground",
+            day_outside:
+              "text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
           }}
         />
       </div>
