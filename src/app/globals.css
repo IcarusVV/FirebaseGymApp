@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -82,4 +81,34 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Calendar styles */
+.rdp {
+    --rdp-cell-size: 40px;
+    --rdp-accent-color: theme(colors.primary.DEFAULT);
+    --rdp-background-color: theme(colors.background);
+    --rdp-accent-color-light: theme(colors.primary.DEFAULT/20);
+    --rdp-selected-color: theme(colors.primary.foreground);
+    --rdp-today-color: theme(colors.accent.DEFAULT);
+    --rdp-cell-border-radius: 0.5rem;
+    --rdp-spacing: 0.5rem;
+}
+
+.rdp-day {
+    @apply h-9 w-9 p-0 font-normal aria-selected:opacity-100;
+}
+
+.rdp-day_selected {
+    @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground;
+}
+
+.rdp-day_today {
+    @apply bg-accent text-accent-foreground;
+}
+
+.rdp-day_outside {
+    @apply text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground;
+}
+
 
