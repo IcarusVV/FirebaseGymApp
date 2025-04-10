@@ -61,7 +61,7 @@ export default function PersonalPage() {
   const calendarDays = generateCalendarDays(currentDate);
 
   const isDateConfirmed = selectedDate
-    ? confirmedVisits.some(visit => isSameDay(visit, day))
+    ? confirmedVisits.some(visit => isSameDay(visit, selectedDate))
     : false;
 
   const handleVisitConfirmation = () => {
@@ -143,7 +143,7 @@ export default function PersonalPage() {
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-2">
           {calendarDays.map((day, index) => {
-            const isConfirmed = confirmedVisits.some(visit => isSameDay(visit, day));
+            const isConfirmed = selectedDate && isSameDay(confirmedVisits.find(visit => isSameDay(visit, day)) || null, day);
             return (
               <div
                 key={index}
@@ -206,4 +206,3 @@ export default function PersonalPage() {
     </div>
   );
 }
-
