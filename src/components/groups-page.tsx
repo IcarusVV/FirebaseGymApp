@@ -53,6 +53,14 @@ export default function GroupsPage() {
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers (Weekly)</h2>
+      <div className="grid grid-cols-8 gap-2">
+        <div></div>
+        {weekDays.map((day) => (
+          <div key={day.toISOString()} className="flex flex-col items-center">
+            <p className="text-sm">{format(day, "EEE")}</p>
+          </div>
+        ))}
+      </div>
 
       <div className="flex flex-col">
         {groupMembers.map((member) => (
@@ -64,9 +72,13 @@ export default function GroupsPage() {
             <div className="border rounded-md p-4">
               <div className="grid grid-cols-7 gap-2">
                 {weekDays.map((day) => {
-                  const isVisitConfirmed = confirmedVisits.some(
-                    (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                  );
+                  let isVisitConfirmed = false;
+                  if (member.name === "Ryan") {
+                    // For Ryan, check against the global confirmedVisits
+                    isVisitConfirmed = confirmedVisits.some(
+                      (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+                    );
+                  }
 
                   return (
                     <div
@@ -75,7 +87,6 @@ export default function GroupsPage() {
                       onClick={() => handleDayClick(day)}
                       style={{ cursor: "pointer" }}
                     >
-                      <p className="text-sm">{format(day, "EEE")}</p>
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           isVisitConfirmed ? "bg-green-200" : ""
