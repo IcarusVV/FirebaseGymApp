@@ -53,10 +53,14 @@ export default function GroupsPage() {
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers (Weekly)</h2>
+
       <div className="grid grid-cols-8 gap-2">
-        <div></div>
+        <div className="w-40 p-4"></div> {/* Empty div for spacing */}
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="flex flex-col items-center justify-center border-r border-border last:border-r-0">
+          <div
+            key={day.toISOString()}
+            className="flex flex-col items-center justify-center border-r border-border last:border-r-0 w-20"
+          >
             <p className="text-sm">{format(day, "EEE")}</p>
           </div>
         ))}
@@ -83,7 +87,7 @@ export default function GroupsPage() {
                   return (
                     <div
                       key={day.toISOString()}
-                      className="flex flex-col items-center border-r border-border last:border-r-0"
+                      className="flex flex-col items-center border-r border-border last:border-r-0 w-20" // Adjusted width to match the header
                       onClick={() => handleDayClick(day)}
                       style={{ cursor: "pointer" }}
                     >
