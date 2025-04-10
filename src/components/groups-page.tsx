@@ -94,7 +94,7 @@ export default function GroupsPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers (Weekly)</h2>
+      <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers</h2>
 
       <div className="w-full overflow-auto">
         <Table>
