@@ -163,7 +163,7 @@ export default function PersonalPage() {
           })}
         </div>
       </div>
-                <Button onClick={handleVisitConfirmation} className="mt-4 bg-primary text-primary-foreground hover:bg-primary/80">
+                <Button onClick={handleVisitConfirmation} className="mt-4 bg-primary text-primary-foreground hover:bg-[hsla(300,100%,50%,0.5)]">
                     {isDateConfirmed ? "Remove Visit" : "Confirm Visit"}
                 </Button>
       <p className="mt-4">
