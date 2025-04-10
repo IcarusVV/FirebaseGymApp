@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, addDays } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, addDays, isWithinInterval } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGymContext } from "@/context/gym-context";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 const daysInWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -65,6 +65,13 @@ export default function PersonalPage() {
     setOpen(false);
   };
 
+  const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 0 });
+  const endOfCurrentWeek = endOfWeek(new Date(), { weekStartsOn: 0 });
+
+  const visitsThisWeek = confirmedVisits.filter(visit =>
+    isWithinInterval(visit, { start: startOfCurrentWeek, end: endOfCurrentWeek })
+  );
+
   return (
     <div className="flex flex-col items-center w-full">
       <h2 className="text-2xl font-semibold mb-4">Personal Gym Visits</h2>
@@ -72,12 +79,12 @@ export default function PersonalPage() {
       <div className="w-full p-4">
         {/* Calendar Header */}
         <div className="flex justify-between items-center mb-2">
-          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -7))}>
-            <CalendarIcon className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -1))}>
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           <h3 className="font-semibold">{format(currentDate, "MMMM yyyy")}</h3>
-          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, 7))}>
-            <CalendarIcon className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, 1))}>
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
 
@@ -94,8 +101,9 @@ export default function PersonalPage() {
             <div
               key={index}
               className={`flex items-center justify-center h-10 w-full rounded-md
-                ${isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-accent"}
+                ${isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground" : "hover:bg-accent"}
                 ${format(day, "MMMM") !== format(currentDate, "MMMM") ? "text-muted-foreground" : ""}
+                ${isSameDay(day, new Date()) ? "text-red-500" : ""}
               `}
               onClick={() => {
                 setSelectedDate(day);
@@ -106,6 +114,10 @@ export default function PersonalPage() {
           ))}
         </div>
       </div>
+
+      <p className="mt-4">
+        You have been to the gym {visitsThisWeek.length} times this week.
+      </p>
 
       <Button onClick={handleVisitConfirmation} className="mt-4 bg-primary text-primary-foreground hover:bg-primary/80">
         {isDateConfirmed ? "Remove Visit" : "Confirm Visit"}
