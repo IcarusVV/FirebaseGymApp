@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -44,7 +45,7 @@ export default function Home() {
                     "flex flex-col items-center justify-center rounded-md p-2 w-full h-full",
                     activeTab === tab.name
                       ? "text-primary"
-                      : "hover:bg-accent hover:text-foreground/80"
+                      : "hover:bg-[hsla(300,100%,50%,0.5)] hover:text-foreground/80"
                   )}
                   onClick={() => setActiveTab(tab.name)}
                 >
@@ -60,3 +61,4 @@ export default function Home() {
     </GymContextProvider>
   );
 }
+
