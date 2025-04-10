@@ -39,23 +39,33 @@ export default function PersonalPage() {
     const [visitData, setVisitData] = useState([]);
 
     useEffect(() => {
-        // Generate random historical data for the past 6 months
+        // Generate historical data for the past 6 months, grouped by week
         const today = new Date();
         const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
-        const newData = [];
+        const weeklyData: { [weekStart: string]: number } = {};
 
         let currentDate = sixMonthsAgo;
         while (currentDate <= today) {
-            const visits = Math.floor(Math.random() * 5) + 1; // Random visits between 1 and 5
-            const day = new Date(currentDate);
-            day.setDate(currentDate.getDate() + Math.floor(Math.random() * 7));
-            newData.push({
-                date: format(currentDate, "yyyy-MM-dd"),
-                visits: confirmedVisits.filter(visit => format(visit, "yyyy-MM-dd") === format(currentDate, "yyyy-MM-dd")).length
-            });
+            const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+            const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+            const weekKey = format(weekStart, "yyyy-MM-dd");
+
+            // Filter visits within the current week
+            const visitsThisWeek = confirmedVisits.filter(visit =>
+                isWithinInterval(visit, { start: weekStart, end: weekEnd })
+            ).length;
+
+            weeklyData[weekKey] = visitsThisWeek;
             currentDate = addDays(currentDate, 7);
         }
-        setVisitData(newData);
+
+        // Convert the weekly data to the format required by recharts
+        const chartData = Object.entries(weeklyData).map(([week, visits]) => ({
+            date: week,
+            visits: visits
+        }));
+
+        setVisitData(chartData);
     }, [confirmedVisits]);
 
   const calendarDays = generateCalendarDays(currentDate);
@@ -90,22 +100,25 @@ export default function PersonalPage() {
           title: "Visit Confirmed!",
           description: `You've confirmed your gym visit on ${format(selectedDate, "PPP")}!`,
         });
+      }
         // Update the chart data when a visit is confirmed
         setVisitData(prevData => {
-          const dateStr = format(selectedDate, "yyyy-MM-dd");
-          const existingDataIndex = prevData.findIndex(item => item.date === dateStr);
+            const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
+            const weekKey = format(weekStart, "yyyy-MM-dd");
+            const existingWeekIndex = prevData.findIndex(item => item.date === weekKey);
 
-          if (existingDataIndex !== -1) {
-            // If the date already exists, update the visits count
-            const newData = [...prevData];
-            newData[existingDataIndex] = { ...newData[existingDataIndex], visits: newData[existingDataIndex].visits + 1 };
-            return newData;
-          } else {
-            // If the date doesn't exist, add a new data point
-            return [...prevData, { date: dateStr, visits: 1 }];
-          }
+            if (existingWeekIndex !== -1) {
+                // If the week already exists, update the visits count
+                const newData = [...prevData];
+                newData[existingWeekIndex].visits = confirmedVisits.filter(visit =>
+                    isWithinInterval(visit, { start: weekStart, end: endOfWeek(selectedDate, { weekStartsOn: 0 }) })
+                ).length;
+                return newData;
+            } else {
+                // If the week doesn't exist, add a new data point with 1 visit
+                return [...prevData, { date: weekKey, visits: 1 }];
+            }
         });
-      }
     }
     setOpen(false);
   };
