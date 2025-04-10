@@ -54,6 +54,7 @@ export default function GroupsPage() {
     <div className="flex flex-col items-center">
       <h2 className="text-2xl font-semibold mb-4">Arnold Worshippers (Weekly)</h2>
 
+      {/* Days of the week header */}
       <div className="grid grid-cols-8 gap-2">
         <div className="w-40 p-4"></div> {/* Empty div for spacing */}
         {weekDays.map((day) => (
