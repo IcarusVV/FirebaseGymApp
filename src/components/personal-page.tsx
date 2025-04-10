@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, addDays, isWithinInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, addDays, isWithinInterval, isFuture } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,14 @@ export default function PersonalPage() {
     : false;
 
   const handleVisitConfirmation = () => {
+    if (selectedDate && isFuture(selectedDate)) {
+      toast({
+        title: "Error",
+        description: "You cannot log exercise in the future!",
+        variant: "destructive",
+      });
+      return;
+    }
     setOpen(true);
   };
 
