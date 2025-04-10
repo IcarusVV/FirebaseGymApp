@@ -44,14 +44,14 @@ export default function PersonalPage() {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       <h2 className="text-2xl font-semibold mb-4">Personal Gym Visits</h2>
       <div className="p-4 w-full">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={setSelectedDate}
-          className="rounded-md"
+          className="rounded-md w-full"
           // Styling to highlight the days
           classNames={{
             day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 border-r border-b border-border",
