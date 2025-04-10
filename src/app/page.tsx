@@ -31,17 +31,17 @@ export default function Home() {
         </div>
 
         {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 w-full bg-secondary border-t border-border">
-          <div className="flex justify-around">
+        <nav className="fixed bottom-0 left-0 w-full bg-secondary border-t border-border" style={{ height: '5vh' }}>
+          <div className="flex justify-around items-center h-full">
             {tabs.map((tab, index) => (
-              <div key={tab.name} className="flex-1 flex items-center justify-center">
+              <div key={tab.name} className="flex-1 flex items-center justify-center h-full">
                 {index > 0 && (
                   <div className="h-5 border-l border-border"></div>
                 )}
                 <Button
                   variant="ghost"
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-md p-2 w-full",
+                    "flex flex-col items-center justify-center rounded-md p-2 w-full h-full",
                     activeTab === tab.name
                       ? "text-primary"
                       : "hover:bg-accent hover:text-foreground/80"
