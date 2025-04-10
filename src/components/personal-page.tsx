@@ -61,7 +61,7 @@ export default function PersonalPage() {
   const calendarDays = generateCalendarDays(currentDate);
 
   const isDateConfirmed = selectedDate
-    ? confirmedVisits.some(visit => format(visit, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd"))
+    ? confirmedVisits.some(visit => isSameDay(visit, day))
     : false;
 
   const handleVisitConfirmation = () => {
