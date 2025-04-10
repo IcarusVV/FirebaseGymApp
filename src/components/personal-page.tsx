@@ -37,6 +37,7 @@ export default function PersonalPage() {
   const [open, setOpen] = useState(false);
   const { confirmedVisits, addVisit, removeVisit } = useGymContext();
     const [visitData, setVisitData] = useState([]);
+    const [updateYAxis, setUpdateYAxis] = useState(0); // State to force YAxis re-render
 
     useEffect(() => {
         // Generate historical data for the past 6 months, grouped by week
@@ -66,6 +67,7 @@ export default function PersonalPage() {
         }));
 
         setVisitData(chartData);
+        setUpdateYAxis(prev => prev + 1); // Trigger YAxis re-render
     }, [confirmedVisits]);
 
   const calendarDays = generateCalendarDays(currentDate);
@@ -101,24 +103,7 @@ export default function PersonalPage() {
           description: `You've confirmed your gym visit on ${format(selectedDate, "PPP")}!`,
         });
       }
-        // Update the chart data when a visit is confirmed
-        setVisitData(prevData => {
-            const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
-            const weekKey = format(weekStart, "yyyy-MM-dd");
-            const existingWeekIndex = prevData.findIndex(item => item.date === weekKey);
-
-            if (existingWeekIndex !== -1) {
-                // If the week already exists, update the visits count
-                const newData = [...prevData];
-                newData[existingWeekIndex].visits = confirmedVisits.filter(visit =>
-                    isWithinInterval(visit, { start: weekStart, end: endOfWeek(selectedDate, { weekStartsOn: 0 }) })
-                ).length;
-                return newData;
-            } else {
-                // If the week doesn't exist, add a new data point with 1 visit
-                return [...prevData, { date: weekKey, visits: 1 }];
-            }
-        });
+        setUpdateYAxis(prev => prev + 1);
     }
     setOpen(false);
   };
@@ -211,7 +196,7 @@ export default function PersonalPage() {
             <BarChart data={visitData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis />
+                <YAxis key={updateYAxis} />
                 <Tooltip />
                 <Bar dataKey="visits" fill="#8884d8" />
             </BarChart>
