@@ -111,10 +111,10 @@ export default function PersonalPage() {
               <div
                 key={index}
                 className={`flex items-center justify-center h-10 w-full rounded-md
-                ${isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground" : "hover:bg-accent"}
+                ${isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground" : "hover:bg-[hsl(300,100%,50%,0.5)]"}
                 ${format(day, "MMMM") !== format(currentDate, "MMMM") ? "text-muted-foreground" : ""}
                 ${isSameDay(day, new Date()) ? "text-red-500" : ""}
-                ${isConfirmed ? "bg-green-200" : ""}
+                ${isConfirmed ? "bg-green-200" : ""} cursor-pointer select-none
               `}
                 onClick={() => {
                   setSelectedDate(day);
