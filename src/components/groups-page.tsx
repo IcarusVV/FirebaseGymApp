@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Crown } from "lucide-react";
+import { Crown, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface GroupProps {
@@ -115,7 +115,7 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
                   key={day.toISOString()}
                   className="w-[calc(100%/7)] text-center"
                 >
-                  {format(day, "EEE")}
+                  {format(day, "EEE")} {format(day, "d")}
                 </TableHead>
               ))}
             </TableRow>
@@ -151,13 +151,15 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
                         onClick={() => handleDayClick(day)}
                         style={{ cursor: "pointer" }}
                       >
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto ${
-                            isVisitConfirmed ? "bg-green-200" : ""
-                          }`}
-                        >
-                          <span>{format(day, "d")}</span>
-                        </div>
+                        {isVisitConfirmed ? (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto bg-green-200">
+                            <Check className="h-5 w-5 text-green-500" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto bg-red-200">
+                            <X className="h-5 w-5 text-red-500" />
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                   );
@@ -208,4 +210,3 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
     </div>
   );
 }
-
