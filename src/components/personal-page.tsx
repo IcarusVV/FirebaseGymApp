@@ -105,21 +105,25 @@ export default function PersonalPage() {
 
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-2">
-          {calendarDays.map((day, index) => (
-            <div
-              key={index}
-              className={`flex items-center justify-center h-10 w-full rounded-md
+          {calendarDays.map((day, index) => {
+            const isConfirmed = confirmedVisits.some(visit => isSameDay(visit, day));
+            return (
+              <div
+                key={index}
+                className={`flex items-center justify-center h-10 w-full rounded-md
                 ${isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground" : "hover:bg-accent"}
                 ${format(day, "MMMM") !== format(currentDate, "MMMM") ? "text-muted-foreground" : ""}
                 ${isSameDay(day, new Date()) ? "text-red-500" : ""}
+                ${isConfirmed ? "bg-green-200" : ""}
               `}
-              onClick={() => {
-                setSelectedDate(day);
-              }}
-            >
-              {format(day, "d")}
-            </div>
-          ))}
+                onClick={() => {
+                  setSelectedDate(day);
+                }}
+              >
+                {format(day, "d")}
+              </div>
+            );
+          })}
         </div>
       </div>
 
