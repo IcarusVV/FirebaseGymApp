@@ -38,12 +38,12 @@ export default function HomePage() {
     <GymContextProvider>
       <div className="flex flex-col h-screen">
         {/* Page Content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 overflow-auto">
           <TabComponent />
         </div>
 
         {/* Bottom Navigation - Icon Only */}
-        <nav className="fixed bottom-0 left-0 w-full bg-secondary border-t border-border" style={{ height: '5vh' }}>
+        <nav className="w-full h-[10vh] bg-secondary border-t border-border">
           <div className="flex justify-around items-center h-full">
             {tabs.map((tab, index) => (
               <div key={tab.name} className="flex-1 flex items-center justify-center h-full">
