@@ -22,7 +22,7 @@ export interface CalendarProps {
   onConfirmClick: () => void;
 }
 
-export default function Calendar({
+export default function calendar({
   confirmedVisits,
   onDateSelect,
   onConfirmClick,
@@ -105,7 +105,7 @@ export default function Calendar({
         })}
       </div>
 
-      <Button onClick={onConfirmClick}>
+      <Button onClick={onConfirmClick} className="mx-auto mt-4 block">
         {isDateConfirmed ? "Remove Visit" : "Confirm Visit"}
       </Button>
     </div>
