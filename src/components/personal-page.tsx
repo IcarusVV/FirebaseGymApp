@@ -7,9 +7,10 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, ad
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useGymContext } from "@/context/gym-context"; // TODO: This context should be replaced with API calls
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import DbService from "@/services/DbService";
+import { Visit } from "@/types/DbTypes";
 
 const daysInWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -35,70 +36,31 @@ export default function PersonalPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const user = { id: 1, username: "JohnDoe" } // TODO: useAuth
   
-  // API INTEGRATION: Replace context with state + API calls
-  const { confirmedVisits, addVisit, removeVisit } = useGymContext();
-  // TODO: Replace above with:
-  // const [confirmedVisits, setConfirmedVisits] = useState<Date[]>([]);
+  const [confirmedVisits, setConfirmedVisits] = useState<Date[]>([]);
   
   const [visitData, setVisitData] = useState([]);
   const [updateYAxis, setUpdateYAxis] = useState(0);
 
-  // API INTEGRATION: Fetch user's gym visits when component mounts
   useEffect(() => {
-    // TODO: Add API call to fetch user's visit data
-    // async function fetchUserVisits() {
-    //   try {
-    //     const userId = getCurrentUserId(); // Get from auth context
-    //     const response = await fetch(`/api/users/${userId}/visits`);
-    //     const data = await response.json();
-    //     
-    //     // Convert string dates to Date objects
-    //     const visits = data.visits.map(visit => new Date(visit.date));
-    //     setConfirmedVisits(visits);
-    //   } catch (error) {
-    //     console.error("Failed to fetch visits:", error);
-    //     toast({
-    //       title: "Error",
-    //       description: "Failed to load your gym visits.",
-    //       variant: "destructive",
-    //     });
-    //   }
-    // }
-    //
-    // fetchUserVisits();
-  }, []);
-
-  useEffect(() => {
-    // Generate historical data for the past 6 months, grouped by week
-    const today = new Date();
-    const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
-    const weeklyData: { [weekStart: string]: number } = {};
-
-    let currentDate = sixMonthsAgo;
-    while (currentDate <= today) {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      const weekKey = format(weekStart, "yyyy-MM-dd");
-
-      // Filter visits within the current week
-      const visitsThisWeek = confirmedVisits.filter(visit =>
-        isWithinInterval(visit, { start: weekStart, end: weekEnd })
-      ).length;
-
-      weeklyData[weekKey] = visitsThisWeek;
-      currentDate = addDays(currentDate, 7);
+    async function fetchUserVisits() {
+      try {
+        const data = await DbService.FetchVisits(user.id);
+        const visits = data.visits.map((visit: Visit) => new Date(visit.date));
+        setConfirmedVisits(visits);
+      } catch (error) {
+        console.error("Failed to fetch visits:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load your gym visits.",
+          variant: "destructive",
+        });
+      }
     }
-
-    // Convert the weekly data to the format required by recharts
-    const chartData = Object.entries(weeklyData).map(([week, visits]) => ({
-      date: week,
-      visits: visits
-    }));
-
-    setVisitData(chartData);
-    setUpdateYAxis(prev => prev + 1); // Trigger YAxis re-render
-  }, [confirmedVisits]);
+    
+    fetchUserVisits();
+  }, []);
 
   const calendarDays = generateCalendarDays(currentDate);
 
@@ -118,87 +80,54 @@ export default function PersonalPage() {
     setOpen(true);
   };
 
-  // API INTEGRATION: Add or remove visit confirmation
   const handleConfirm = async () => {
     if (selectedDate) {
       if (isDateConfirmed) {
-        // TODO: Replace with API call to remove visit
-        // try {
-        //   const userId = getCurrentUserId(); // Get from auth context
-        //   await fetch(`/api/users/${userId}/visits`, {
-        //     method: 'DELETE',
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({ 
-        //       date: format(selectedDate, "yyyy-MM-dd") 
-        //     }),
-        //   });
-        //   
-        //   // Update local state after successful API call
-        //   setConfirmedVisits(prevVisits => 
-        //     prevVisits.filter(visit => !isSameDay(visit, selectedDate))
-        //   );
-        //   
-        //   toast({
-        //     title: "Visit Removed!",
-        //     description: `You've removed your gym visit on ${format(selectedDate, "PPP")}!`,
-        //   });
-        // } catch (error) {
-        //   console.error("Failed to remove visit:", error);
-        //   toast({
-        //     title: "Error",
-        //     description: "Failed to remove your gym visit.",
-        //     variant: "destructive",
-        //   });
-        // }
-        
-        // Using context for now
-        removeVisit(selectedDate);
-        toast({
-          title: "Visit Removed!",
-          description: `You've removed your gym visit on ${format(selectedDate, "PPP")}!`,
-        });
+        try {
+          await DbService.RemoveVisit(user.id, selectedDate);
+          
+          // Update local state after successful API call
+          setConfirmedVisits(prevVisits => 
+            prevVisits.filter(visit => !isSameDay(visit, selectedDate))
+          );
+          
+          toast({
+            title: "Visit Removed!",
+            description: `You've removed your gym visit on ${format(selectedDate, "PPP")}!`,
+          });
+        } catch (error) {
+          console.error("Failed to remove visit:", error);
+          toast({
+            title: "Error",
+            description: "Failed to remove your gym visit.",
+            variant: "destructive",
+          });
+        }
       } else {
-        // TODO: Replace with API call to add visit
-        // try {
-        //   const userId = getCurrentUserId(); // Get from auth context
-        //   const formData = new FormData();
-        //   formData.append('date', format(selectedDate, "yyyy-MM-dd"));
-        //   
-        //   // If you have a picture upload feature
-        //   // const pictureInput = document.getElementById('picture');
-        //   // if (pictureInput.files.length > 0) {
-        //   //   formData.append('proofImage', pictureInput.files[0]);
-        //   // }
-        //   
-        //   await fetch(`/api/users/${userId}/visits`, {
-        //     method: 'POST',
-        //     body: formData,
-        //   });
-        //   
-        //   // Update local state after successful API call
-        //   setConfirmedVisits(prevVisits => [...prevVisits, selectedDate]);
-        //   
-        //   toast({
-        //     title: "Visit Confirmed!",
-        //     description: `You've confirmed your gym visit on ${format(selectedDate, "PPP")}!`,
-        //   });
-        // } catch (error) {
-        //   console.error("Failed to add visit:", error);
-        //   toast({
-        //     title: "Error",
-        //     description: "Failed to confirm your gym visit.",
-        //     variant: "destructive",
-        //   });
-        // }
-        
-        // Using context for now
-        addVisit(selectedDate);
-        toast({
-          title: "Visit Confirmed!",
-          description: `You've confirmed your gym visit on ${format(selectedDate, "PPP")}!`,
-        });
+        try {
+          // If you have a picture upload feature
+          // const pictureInput = document.getElementById('picture');
+          // if (pictureInput.files.length > 0) {
+          //   formData.append('proofImage', pictureInput.files[0]);
+          // }
+          
+          await DbService.AddVisit(user.id, selectedDate);
+          
+          // Update local state after successful API call
+          setConfirmedVisits(prevVisits => [...prevVisits, selectedDate]);
+          
+          toast({
+            title: "Visit Confirmed!",
+            description: `You've confirmed your gym visit on ${format(selectedDate, "PPP")}!`,
+          });
+        } catch (error) {
+          console.error("Failed to add visit:", error);
+          toast({
+            title: "Error",
+            description: "Failed to confirm your gym visit.",
+            variant: "destructive",
+          });
+        }
       }
       setUpdateYAxis(prev => prev + 1);
     }
@@ -238,13 +167,15 @@ export default function PersonalPage() {
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-2">
           {calendarDays.map((day, index) => {
-            const isConfirmed = selectedDate && isSameDay(confirmedVisits.find(visit => isSameDay(visit, day)) || null, day);
+            const matchingVisit = confirmedVisits.find(visit => isSameDay(visit, day));
+            const isConfirmed = selectedDate && matchingVisit && isSameDay(matchingVisit, day);
             const isToday = isSameDay(day, new Date());
             return (
               <div
                 key={index}
                 className={`flex items-center justify-center h-10 w-full rounded-md
-                ${isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground" : "hover:bg-[hsla(300,100%,50%,0.5)]"}
+                ${selectedDate && isSameDay(day, selectedDate)
+                  ? "bg-primary text-primary-foreground" : "hover:bg-[hsla(300,100%,50%,0.5)]"}
                 ${format(day, "MMMM") !== format(currentDate, "MMMM") ? "text-muted-foreground" : ""}
                 ${isToday ? "border-2 border-red-500" : ""}
                 ${isConfirmed ? "bg-green-200" : ""} cursor-pointer select-none

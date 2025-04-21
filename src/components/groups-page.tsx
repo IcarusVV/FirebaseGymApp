@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { addDays, startOfWeek, format, isWithinInterval } from "date-fns";
-import { useGymContext } from "@/context/gym-context";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GymContextType } from "@/context/gym-context";
 import {
   Table,
   TableBody,
@@ -25,9 +23,13 @@ import {
 } from "@/components/ui/table";
 import { Crown, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Visit, User } from "@/types/DbTypes";
+import DbService from "@/services/DbService";
+
 
 interface GroupProps {
   name: string;
+  id: number;
   members: { name: string; id: string }[];
 }
 
@@ -41,36 +43,42 @@ function getWeekDays(date: Date) {
 }
 
 function getMemberVisitsThisWeek(
-  member: { name: string; id: string },
-  confirmedVisits: Date[],
+  confirmedVisits: Visit[],
   weekStart: Date,
   weekEnd: Date,
-  groupId: string
 ): Date[] {
-  if (member.id === "ryan" && groupId === "arnold") {
     return confirmedVisits.filter((visit) =>
-      isWithinInterval(visit, { start: weekStart, end: weekEnd })
-    );
-  }
-
-    if (member.id === "ryan" && groupId === "lightweight") {
-        return confirmedVisits.filter((visit) =>
-            isWithinInterval(visit, { start: weekStart, end: weekEnd })
-        );
-    }
-  return [];
+      isWithinInterval(visit.timestamp, { start: weekStart, end: weekEnd })
+    ).map(visit => new Date(visit.timestamp));
 }
 
 export default function GroupsPage({ group, setActiveGroup }: { group: GroupProps, setActiveGroup: (groupName: string | null) => void }) {
   const [selectedWeek, setSelectedWeek] = useState(new Date());
   const weekDays = getWeekDays(selectedWeek);
-  const { confirmedVisits } = useGymContext();
+  const [members, setMembers] = useState<User[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  useEffect(() => {
+    const fetchGroupData = async () => {
+      const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 0 });
+      const weekEnd = addDays(weekStart, 6);
+  
+      const groupMembers = await DbService.GetGroupMembers(group.id);
+      const groupVisits = await DbService.GetVisitsForGroupInWeek(group.name, weekStart, weekEnd);
+  
+      setMembers(groupMembers);
+      setVisits(groupVisits);
+    };
+  
+    fetchGroupData();
+  }, [group.name, selectedWeek]);
+  
+
   const visitsOnDate = selectedDate
-    ? confirmedVisits.filter(
-        (date) => format(date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
+    ? visits.filter(
+        (visit) => format(visit.timestamp, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
       )
     : [];
 
@@ -82,9 +90,9 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
   const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 0 });
   const weekEnd = addDays(weekStart, 6);
 
-  const memberVisits = group.members.map((member) => ({
+  const memberVisits = members.map((member) => ({
     member,
-    visits: getMemberVisitsThisWeek(member, confirmedVisits, weekStart, weekEnd, group.name === "Arnold Worshippers" ? "arnold" : "lightweight"),
+    visits: getMemberVisitsThisWeek(visits, weekStart, weekEnd),
   }));
 
   const memberWithMostVisits = memberVisits.reduce(
@@ -121,7 +129,7 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {group.members.map((member) => (
+            {members.map((member) => (
               <TableRow key={member.id}>
                 <TableCell className="font-medium">
                   {member.name}{" "}
@@ -130,20 +138,12 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
                   )}
                 </TableCell>
                 {weekDays.map((day) => {
-                  let isVisitConfirmed = false;
-                    if (member.id === "ryan" && group.name === "Arnold Worshippers") {
-                        // For Ryan, check against the global confirmedVisits
-                        isVisitConfirmed = confirmedVisits.some(
-                            (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                        );
-                    }
-
-                      if (member.id === "ryan" && group.name === "Lightweight Baby") {
-                          // For Ryan, check against the global confirmedVisits
-                          isVisitConfirmed = confirmedVisits.some(
-                              (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                          );
-                      }
+                  const isVisitConfirmed = visits.some(
+                    (visit) =>
+                      visit.userId === member.id &&
+                      format(new Date(visit.timestamp), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+                  );
+                  
 
                   return (
                     <TableCell key={day.toISOString()} className="text-center">
