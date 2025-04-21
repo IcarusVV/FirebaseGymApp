@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarIcon, Users, Settings, Home } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,11 +9,24 @@ import GroupsPage from "@/components/groups-page";
 import SettingsPage from "@/components/settings-page";
 import { GymContextProvider } from "@/context/gym-context";
 import GroupsHome from "@/components/groups-home";
+import { UserIcon, SquadsIcon, SettingsIcon } from "@/lib/icons";
 
 const tabs = [
-  { name: "Personal", icon: CalendarIcon, component: PersonalPage },
-  { name: "Groups", icon: Users, component: GroupsHome },
-  { name: "Settings", icon: Settings, component: SettingsPage },
+  { 
+    name: "Personal", 
+    icon: UserIcon, 
+    component: PersonalPage 
+  },
+  { 
+    name: "Groups", 
+    icon: SquadsIcon, 
+    component: GroupsHome 
+  },
+  { 
+    name: "Settings", 
+    icon: SettingsIcon, 
+    component: SettingsPage 
+  },
 ];
 
 export default function HomePage() {
@@ -27,12 +38,12 @@ export default function HomePage() {
     <GymContextProvider>
       <div className="flex flex-col h-screen">
         {/* Page Content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 overflow-auto">
           <TabComponent />
         </div>
 
-        {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 w-full bg-secondary border-t border-border" style={{ height: '5vh' }}>
+        {/* Bottom Navigation - Icon Only */}
+        <nav className="w-full h-[10vh] bg-secondary border-t border-border">
           <div className="flex justify-around items-center h-full">
             {tabs.map((tab, index) => (
               <div key={tab.name} className="flex-1 flex items-center justify-center h-full">
@@ -42,15 +53,17 @@ export default function HomePage() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-md p-2 w-full h-full",
+                    "flex items-center justify-center rounded-md p-2 w-full h-full",
                     activeTab === tab.name
                       ? "text-primary"
                       : "hover:bg-[hsla(300,100%,50%,0.5)] hover:text-foreground/80"
                   )}
                   onClick={() => setActiveTab(tab.name)}
+                  aria-label={tab.name}
                 >
-                  <tab.icon className="h-5 w-5" />
-                  <span>{tab.name}</span>
+                  <div className="h-10 w-10 flex items-center justify-center">
+                    <tab.icon className="h-full w-full" />
+                  </div>
                 </Button>
               </div>
             ))}
