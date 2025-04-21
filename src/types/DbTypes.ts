@@ -10,6 +10,8 @@ export interface User {
 export interface Squad {
   id: number;
   squad_name: string;
+  members: [];
+  squad_leader_id: number;
   squad_description?: string;
   created_at: Date;
   updated_at: Date;

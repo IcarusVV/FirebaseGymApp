@@ -1,108 +1,144 @@
+// src/components/groups-page.tsx
 "use client";
 
-import { useState, useContext } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { addDays, startOfWeek, format, isWithinInterval } from "date-fns";
-import { useGymContext } from "@/context/gym-context";
+import { useState, useEffect, useMemo } from "react";
+import { addDays, startOfWeek, format } from "date-fns";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogHeader,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GymContextType } from "@/context/gym-context";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Crown, Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import GymService from "@/services/GymService";
 
-interface GroupProps {
+
+interface Member {
+  id: number;
   name: string;
-  members: { name: string; id: string }[];
+}
+
+export interface GroupProps {
+  id: number;
+  name: string;
+  members: User[];
 }
 
 function getWeekDays(date: Date) {
-  const startDate = startOfWeek(date, { weekStartsOn: 0 }); // Start week on Sunday
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    days.push(addDays(startDate, i));
-  }
-  return days;
+  const start = startOfWeek(date, { weekStartsOn: 0 });
+  return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
 }
 
-function getMemberVisitsThisWeek(
-  member: { name: string; id: string },
-  confirmedVisits: Date[],
-  weekStart: Date,
-  weekEnd: Date,
-  groupId: string
-): Date[] {
-  if (member.id === "ryan" && groupId === "arnold") {
-    return confirmedVisits.filter((visit) =>
-      isWithinInterval(visit, { start: weekStart, end: weekEnd })
-    );
-  }
-
-    if (member.id === "ryan" && groupId === "lightweight") {
-        return confirmedVisits.filter((visit) =>
-            isWithinInterval(visit, { start: weekStart, end: weekEnd })
-        );
-    }
-  return [];
-}
-
-export default function GroupsPage({ group, setActiveGroup }: { group: GroupProps, setActiveGroup: (groupName: string | null) => void }) {
+export default function GroupsPage({
+  group,
+  setActiveGroup,
+}: {
+  group: GroupProps;
+  setActiveGroup: () => void;
+}) {
   const [selectedWeek, setSelectedWeek] = useState(new Date());
-  const weekDays = getWeekDays(selectedWeek);
-  const { confirmedVisits } = useGymContext();
+  const [visitsMap, setVisitsMap] = useState<Record<number, Date[]> | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const visitsOnDate = selectedDate
-    ? confirmedVisits.filter(
-        (date) => format(date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
-      )
-    : [];
+  const weekStart = useMemo(
+    () => startOfWeek(selectedWeek, { weekStartsOn: 0 }),
+    [selectedWeek]
+  );
+  const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
+  const weekDays = useMemo(() => getWeekDays(selectedWeek), [selectedWeek]);
+
+  // 1️⃣ Fetch all visits for this squad & week
+  useEffect(() => {
+    setLoading(true);
+    GymService.getSquadVisits(
+      group.id,
+      format(weekStart, "yyyy-MM-dd"),
+      format(weekEnd, "yyyy-MM-dd")
+    )
+      .then((records) => {
+        console.log("Raw visit records:", records); // <- Add this line
+  
+        if (!Array.isArray(records)) {
+          throw new Error("Expected an array of visits, but got something else.");
+        }
+  
+        const map: Record<number, Date[]> = {};
+        records.forEach(({ user_id, visit_date }) => {
+          const dt = new Date(visit_date);
+          if (dt >= weekStart && dt <= weekEnd) {
+            map[user_id] = map[user_id] || [];
+            map[user_id].push(dt);
+          }
+        });
+        setVisitsMap(map);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Could not load visit data.");
+      })
+      .finally(() => setLoading(false));
+  }, [group.id, weekStart, weekEnd]);
+
+
+  if (loading) return <p>Loading visits…</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
+  if (!visitsMap) return null;
+
+  // 2️⃣ Build an array of { member, visits[] }
+  const memberVisits = group.members.map((m) => ({
+    member: m,
+    visits: visitsMap[m.id] || [],
+  }));
+
+  // 3️⃣ Find who has the most visits
+  const { member: champ } = memberVisits.reduce(
+    (best, cur) => (cur.visits.length > best.visits.length ? cur : best),
+    { member: { id: -1, name: "" }, visits: [] as Date[] }
+  );
+
+  // 4️⃣ Gather visits for the dialog on the selected date
+  const visitsOnDate =
+    selectedDate
+      ? memberVisits.flatMap(({ member, visits }) =>
+          visits
+            .filter(
+              (v) => format(v, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
+            )
+            .map((v) => ({ member, date: v }))
+        )
+      : [];
 
   const handleDayClick = (day: Date) => {
     setSelectedDate(day);
     setOpen(true);
   };
 
-  const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 0 });
-  const weekEnd = addDays(weekStart, 6);
-
-  const memberVisits = group.members.map((member) => ({
-    member,
-    visits: getMemberVisitsThisWeek(member, confirmedVisits, weekStart, weekEnd, group.name === "Arnold Worshippers" ? "arnold" : "lightweight"),
-  }));
-
-  const memberWithMostVisits = memberVisits.reduce(
-    (maxVisitsMember, currentMember) => {
-      return currentMember.visits.length > maxVisitsMember.visits.length
-        ? currentMember
-        : maxVisitsMember;
-    },
-    { member: { name: "", id: "" }, visits: [] }
-  ).member;
-
   return (
     <div className="flex flex-col items-center">
-        <div className="w-full flex justify-end">
-            <Button onClick={() => setActiveGroup(null)} className="mb-4">
-                Back to Groups
-            </Button>
-        </div>
+      <div className="w-full flex justify-end">
+        <Button onClick={setActiveGroup} className="mb-4">
+          Back to Groups
+        </Button>
+      </div>
+
       <h2 className="text-2xl font-semibold mb-4">{group.name}</h2>
 
       <div className="w-full overflow-auto">
@@ -115,35 +151,26 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
                   key={day.toISOString()}
                   className="w-[calc(100%/7)] text-center"
                 >
-                  {format(day, "EEE")} {format(day, "d")}
+                  {format(day, "EEE")}
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
+
           <TableBody>
-            {group.members.map((member) => (
+            {memberVisits.map(({ member, visits }) => (
               <TableRow key={member.id}>
                 <TableCell className="font-medium">
-                  {member.name}{" "}
-                  {memberWithMostVisits.id === member.id && (
+                  {member.username}
+                  {champ.id === member.id && (
                     <Crown className="inline-block h-4 w-4 text-yellow-500" />
                   )}
                 </TableCell>
-                {weekDays.map((day) => {
-                  let isVisitConfirmed = false;
-                    if (member.id === "ryan" && group.name === "Arnold Worshippers") {
-                        // For Ryan, check against the global confirmedVisits
-                        isVisitConfirmed = confirmedVisits.some(
-                            (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                        );
-                    }
 
-                      if (member.id === "ryan" && group.name === "Lightweight Baby") {
-                          // For Ryan, check against the global confirmedVisits
-                          isVisitConfirmed = confirmedVisits.some(
-                              (visit) => format(visit, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                          );
-                      }
+                {weekDays.map((day) => {
+                  const isConfirmed = visits.some(
+                    (v) => format(v, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+                  );
 
                   return (
                     <TableCell key={day.toISOString()} className="text-center">
@@ -151,7 +178,7 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
                         onClick={() => handleDayClick(day)}
                         style={{ cursor: "pointer" }}
                       >
-                        {isVisitConfirmed ? (
+                        {isConfirmed ? (
                           <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto bg-green-200">
                             <Check className="h-5 w-5 text-green-500" />
                           </div>
@@ -175,36 +202,36 @@ export default function GroupsPage({ group, setActiveGroup }: { group: GroupProp
           <DialogHeader>
             <DialogTitle>Gym Attendees</DialogTitle>
             <DialogDescription>
-              List of gym attendees on{" "}
-              {selectedDate ? format(selectedDate, "PPP") : "selected date"}.
+              Attendees on{" "}
+              {selectedDate ? format(selectedDate, "PPP") : "—"}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <ScrollArea className="h-[200px] w-[300px]">
-                {visitsOnDate.length > 0 ? (
-                  visitsOnDate.map((date, index) => (
-                    <div key={index} className="flex items-center space-x-4 py-2">
-                      <Avatar>
-                        <AvatarImage src="https://picsum.photos/50/50" alt="Gym Goer" />
-                        <AvatarFallback>GG</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium leading-none">
-                          Gym Goer {index + 1}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Last visit: {format(date, "hh:mm a")}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p>No visits confirmed for this date.</p>
-                )}
-              </ScrollArea>
-            </div>
-          </div>
+
+          <ScrollArea className="h-[200px] w-full">
+            {visitsOnDate.length > 0 ? (
+              visitsOnDate.map(({ member, date }, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center space-x-4 py-2 px-2"
+                >
+                  <Avatar>
+                    <AvatarImage src="https://picsum.photos/50/50" alt={member.name} />
+                    <AvatarFallback>{member.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium leading-none">
+                      {member.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(date, "hh:mm a")}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="p-4">No visits confirmed for this date.</p>
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

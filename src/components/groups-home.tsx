@@ -3,21 +3,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import GroupsPage from "@/components/groups-page";
-import GymService from "@/services/GymService";      // ← your new backend client
-import { Squad } from "../types/DbTypes";
+import GymService from "@/services/GymService";
+import { Squad, User } from "../types/DbTypes";
 
-const arnoldWorshippersMembers = [
-  { name: "Ben", id: "ben" },
-  { name: "Ryan", id: "ryan" },
-  { name: "Shaun", id: "shaun" },
-  { name: "Mike", id: "mike" },
-  { name: "Greg", id: "greg" },
-];
-
-interface Member {
-  id: number;
-  name: string;
-}
 
 interface GroupsHomeProps {
   /** The current logged‑in user’s ID */
@@ -28,12 +16,14 @@ export default function GroupsHome({ memberId }: GroupsHomeProps) {
   const [squads, setSquads] = useState<Squad[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeSquadId, setActiveSquadId] = useState<number | null>(null);
+  const [squadUsers, setSquadUsers] = useState<User[] | null>(null);
 
   // Fetch all squads for this member once on mount
   useEffect(() => {
     GymService
-      .getUserSquads(1)
+      .getUserSquads(3)
       .then(fetched => {
+        console.log(fetched)
         setSquads(fetched);
       })
       .catch(err => {
@@ -41,6 +31,22 @@ export default function GroupsHome({ memberId }: GroupsHomeProps) {
         setError("Sorry, we couldn’t load your groups.");
       });
   }, [memberId]);
+
+  // Fetch squad members whenever active squad changes
+  useEffect(() => {
+    if (activeSquadId === null) return;
+
+    GymService
+      .getSquadUsers(activeSquadId)
+      .then((members) => {
+        console.log(members)
+        setSquadUsers(members);
+      })
+      .catch((err) => {
+        console.error("Failed to load squad users:", err);
+        setSquadUsers(null);
+      });
+  }, [activeSquadId]);
 
   // While loading
   if (squads === null && error === null) {
@@ -53,16 +59,18 @@ export default function GroupsHome({ memberId }: GroupsHomeProps) {
   }
 
   // If user has clicked into one, render that page
-  if (activeSquadId) {
-    const squad = squads!.find(s => s.id === activeSquadId);
-    if (squad) {
-      return (
-        <GroupsPage
-          group={{ name: squad.squad_name, members: arnoldWorshippersMembers}}
-          setActiveGroup={() => setActiveSquadId(null)}
-        />
-      );
-    }
+  const squad = squads!.find(s => s.id === activeSquadId);
+  if (activeSquadId && squad && squadUsers) {
+    return (
+      <GroupsPage
+        group={{
+          id: squad.id,
+          name: squad.squad_name,
+          members: squadUsers,
+        }}
+        setActiveGroup={() => setActiveSquadId(null)}
+      />
+    );
   }
 
   return (
@@ -77,7 +85,9 @@ export default function GroupsHome({ memberId }: GroupsHomeProps) {
             <li key={squad.id} className="py-2">
               <Button
                 className="w-full"
-                onClick={() => setActiveSquadId(squad.id)}
+                onClick={() => {
+                  console.log("click!", squad.id);
+                  setActiveSquadId(squad.id)}}
               >
                 {squad.squad_name}
               </Button>
