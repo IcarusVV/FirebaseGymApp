@@ -1,5 +1,5 @@
 export interface User {
-    id?: number;
+    id: number;
     username: string;
     email: string;
     encrypted_password: string;
@@ -8,7 +8,7 @@ export interface User {
   }
   
 export interface Squad {
-  id?: number;
+  id: number;
   squad_name: string;
   squad_description?: string;
   created_at: Date;
@@ -16,7 +16,7 @@ export interface Squad {
 }
 
 export interface Membership {
-  id?: number;
+  id: number;
   created_at: Date;
   updated_at: Date;
   user_id: number;
@@ -24,7 +24,7 @@ export interface Membership {
 }
 
 export interface Visit {
-  id?: number;
+  id: number;
   visit_date: Date;
   user_id: number;
 }

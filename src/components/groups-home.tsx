@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import GroupsPage from "@/components/groups-page";
+import GymService from "@/services/GymService";      // ← your new backend client
+import { Squad } from "../types/DbTypes";
 
 const arnoldWorshippersMembers = [
   { name: "Ben", id: "ben" },
@@ -12,49 +14,94 @@ const arnoldWorshippersMembers = [
   { name: "Greg", id: "greg" },
 ];
 
-const lightweightBabyMembers = [
-    {name: "George", id: "george"},
-    {name: "Muffin", id: "muffin"},
-    {name: "Protein", id: "protein"},
-    {name: "Ryan", id: "ryan"},
-]
+interface Member {
+  id: number;
+  name: string;
+}
 
-export default function GroupsHome() {
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+interface GroupsHomeProps {
+  /** The current logged‑in user’s ID */
+  memberId: number;
+}
 
-  const groups = [
-    { name: "Arnold Worshippers", members: arnoldWorshippersMembers },
-    { name: "Lightweight Baby", members: lightweightBabyMembers },
-  ];
+export default function GroupsHome({ memberId }: GroupsHomeProps) {
+  const [squads, setSquads] = useState<Squad[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [activeSquadId, setActiveSquadId] = useState<number | null>(null);
 
-    const GroupButton = ({ groupName }: { groupName: string }) => (
-        <Button className="w-full" onClick={() => setActiveGroup(groupName)}>{groupName}</Button>
-    );
+  // Fetch all squads for this member once on mount
+  useEffect(() => {
+    GymService
+      .getUserSquads(1)
+      .then(fetched => {
+        setSquads(fetched);
+      })
+      .catch(err => {
+        console.error("Failed to load squads:", err);
+        setError("Sorry, we couldn’t load your groups.");
+      });
+  }, [memberId]);
 
-  if (activeGroup) {
-    const group = groups.find((g) => g.name === activeGroup);
-    if (group) {
-      return <GroupsPage group={group} setActiveGroup={setActiveGroup} />;
+  // While loading
+  if (squads === null && error === null) {
+    return <p>Loading your groups…</p>;
+  }
+
+  // If something went wrong
+  if (error) {
+    return <p className="text-red-600">{error}</p>;
+  }
+
+  // If user has clicked into one, render that page
+  if (activeSquadId) {
+    const squad = squads!.find(s => s.id === activeSquadId);
+    if (squad) {
+      return (
+        <GroupsPage
+          group={{ name: squad.squad_name, members: arnoldWorshippersMembers}}
+          setActiveGroup={() => setActiveSquadId(null)}
+        />
+      );
     }
   }
 
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Your Groups</h2>
-      <ul>
-        {groups.map((group) => (
-          <li key={group.name} className="py-2">
-            <GroupButton groupName={group.name} />
-          </li>
-        ))}
-      </ul>
-        <div className="flex mt-4">
-            <Button variant="outline" style={{borderColor: 'hsl(var(--primary))', color: 'black'}} className="w-1/2 mr-2">Join Group</Button>
-            <Button variant="outline" style={{borderColor: 'hsl(var(--primary))', color: 'black'}} className="w-1/2">Create Group</Button>
-        </div>
+
+      {squads!.length === 0 ? (
+        <p>You’re not in any groups yet.</p>
+      ) : (
+        <ul>
+          {squads!.map(squad => (
+            <li key={squad.id} className="py-2">
+              <Button
+                className="w-full"
+                onClick={() => setActiveSquadId(squad.id)}
+              >
+                {squad.squad_name}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex mt-4">
+        <Button
+          variant="outline"
+          className="w-1/2 mr-2"
+          onClick={() => {/* open join dialog */}}
+        >
+          Join Group
+        </Button>
+        <Button
+          variant="outline"
+          className="w-1/2"
+          onClick={() => {/* open create dialog */}}
+        >
+          Create Group
+        </Button>
+      </div>
     </div>
   );
-
 }
-
-
